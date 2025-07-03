@@ -65,8 +65,3 @@ It’s working great in my setup, but I’m calling it a “beta” for now unti
 ---
 
 I’d love your feedback, ideas, bug reports (via github please), and feature requests. If you use it and like it, drop a comment; let’s make Frigate Vision even smarter!
-
-Cheers,
-*Zach*
-
-<sub>P.S The automation and blueprint was all cooked up by me, but I'm lazy and had AI assist with writing this forum post. :slight_smile:</sub> 
