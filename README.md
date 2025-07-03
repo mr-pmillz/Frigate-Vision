@@ -28,11 +28,10 @@ Introducing **Frigate Vision**; a blueprint designed to bring intelligent notifi
 
 ---
 
-[details=🛠️ Why I Built It:]
+### 🛠️ Why I Built It:
 I’ve used @SgtBatten’s reworked Frigate notifications for years and finally decided to break it down and recreate it to my liking. It started out as a fun project, but once I discovered **LLMVision** and the ability to generate dynamic event summaries from clips, I was *hooked*.
 
 I’ve since spent time crafting what I felt was the ultimate smart notification setup for me. The blueprint includes 3 built-in notification actions and is currently optimized for Android (with iOS support planned). This is still a **beta version**, but it’s what I’d call *mostly complete*—and I’m already planning to add more customization options like SgtBatten’s original in future releases.
-[/details]
 
 
 ---
