@@ -9,11 +9,10 @@ blueprint:
   input:
     dashboard:
       name: Event Summary dashboard
-      description: Select which dashboard to show when clicking the "View Summary" notification action
+      description: Enter the URI for the dashboard to show when clicking the "View Summary" notification action
       default:
       selector:
-        entity:
-          domain: dashboard
+        text:
     append:
       name: Append Camera
       description: Appends "Camera" to the camera name for notification purposes (i.e. Back Yard becomes Back Yard Camera)
@@ -198,6 +197,7 @@ trigger:
 actions:
   - variables:
       input_append: !input append
+      input_dashboard: !input dashboard
       input_expand: !input expand
       input_provider: !input provider
       input_frigate_retry_attempts: !input frigate_retry_attempts
@@ -270,7 +270,7 @@ actions:
             uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
           - action: URI
             title: View Summary
-            uri: /dashboard-home/event-summaries
+            uri: "{{ input_dashboard }}"
           - action: URI
             title: Open Frigate
             uri: "{{base_url}}:8971/review"
@@ -350,7 +350,7 @@ actions:
                           uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
                         - action: URI
                           title: View Summary
-                          uri: /dashboard-home/event-summaries
+                          uri: "{{ input_dashboard }}"
                         - action: URI
                           title: Open Frigate
                           uri: "{{base_url}}:8971/review"
@@ -431,7 +431,7 @@ actions:
             uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
           - action: URI
             title: View Summary
-            uri: /dashboard-home/event-summaries
+            uri: "{{ input_dashboard }}"
           - action: URI
             title: Open Frigate
             uri: "{{base_url}}:8971/review"
