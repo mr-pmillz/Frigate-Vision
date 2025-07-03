@@ -186,11 +186,6 @@ blueprint:
 trigger_variables:
   input_camera: !input 'camera'
   camera: '{{ input_camera | replace(''camera.'', '''') }}' 
-  input_labels: !input 'labels'
-  labels: "{{ input_labels | list | lower }}"
-  object: "{{ trigger.payload_json['after']['label'] }}"
-  label: "{{ object | title }}"
-  
 trigger:
   - topic: frigate/events
     payload: "{{ camera }}/new"
@@ -198,9 +193,6 @@ trigger:
     id: frigate-event
     trigger: mqtt
 condition:
-  - condition: template
-    value_template: >
-     {{ not labels|length or object in labels }}
 actions:
   - variables:
       input_append: !input append
@@ -226,6 +218,10 @@ actions:
       input_helper: !input 'helper'
       input_base_url: !input 'base_url'
       input_local_url: !input 'local_url'
+      input_labels: !input 'labels'
+      labels: "{{ input_labels | list | lower }}"
+      object: "{{ trigger.payload_json['after']['label'] }}"
+      label: "{{ object | title }}"
       raw_device: !input notify_device
       input_notify_device: >-
         {{ 'notify.mobile_app_' ~ device_attr(raw_device, 'name') | lower | replace(' ', '_') | replace("'", '') }}
@@ -249,6 +245,9 @@ actions:
       snapshot_url: "{{base_url}}/api/frigate/notifications/{{id}}/snapshot.jpg"
       update_thumbnail: true
       alert_once: true
+  - condition: template
+    value_template: >
+     {{ not labels|length or object in labels }}
   - action: "{{input_notify_device}}"
     data:
       title: "{{title}}"
