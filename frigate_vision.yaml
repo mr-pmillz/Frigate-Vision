@@ -291,9 +291,9 @@ actions:
             update: "{{ alert_once or (new_snapshot and not sub_label_changed) }}"
             title: |
               {% if sub_label %} 
-                {{sub_label[0]}} was detected on the {{camera_name}} camera.
+                {{sub_label[0]}} was detected on the {{camera_name}}.
               {%else%}
-                 A {{ label }} was detected on the {{ camera_name }} camera.
+                 A {{ label }} was detected on the {{ camera_name }}.
               {%endif%}
             message: ""
         - data_template:
