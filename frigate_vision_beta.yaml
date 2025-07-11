@@ -456,9 +456,9 @@ actions:
             title: Open Frigate
             uri: "{{base_url}}:8971/review"
   - service: input_text.set_value
-  target:
-    entity_id: input_text.llmvision_response
-  data:
-    value: ""
+    target:
+      entity_id: input_text.llmvision_response
+    data:
+      value: ""
   - delay: "{{ input_cooldown }}"
 mode: single
