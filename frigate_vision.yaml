@@ -384,7 +384,7 @@ actions:
         {% set time_in_seconds = (retry_time.hours | default(0)) * 3600 + (retry_time.minutes | default(0)) * 60 + (retry_time.seconds | default(0)) %}
         {% set attempts = input_frigate_retry_attempts | int %}
         {{ (time_in_seconds * attempts) + 60 }}
- - alias: "LLM Vision: Analyze Frigate Clip"
+  - alias: "LLM Vision: Analyze Frigate Clip"
     action: llmvision.video_analyzer
     data:
       remember: true
