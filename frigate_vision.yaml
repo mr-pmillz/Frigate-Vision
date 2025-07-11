@@ -68,7 +68,7 @@ blueprint:
       selector:
         boolean:
     expose_images:
-      name: Explose Images
+      name: Expose Images
       description: Save the key frame. This will save analyzed frames in /www/llmvision so they can be used for notifications. The file path will be included in the response.
       default: true
       selector:
