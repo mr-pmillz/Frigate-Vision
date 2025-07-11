@@ -322,9 +322,6 @@ actions:
 
                   image: "/api/frigate{{client_id}}/notifications/{{id}}/{{attachment}}.jpg?format=android"
           action: logbook.log
-    until:
-      - condition: template
-        value_template: "{{ not wait.trigger or wait.trigger.payload_json['type'] == 'end' }}"
         - alias: Notify on loitering or significant change
           choose:
             - conditions:
