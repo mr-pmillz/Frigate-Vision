@@ -12,7 +12,6 @@ Introducing **Frigate Vision**; a blueprint designed to bring intelligent notifi
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fzacharyd3%2FFrigate-Vision%2Fblob%2Fmain%2Ffrigate_vision.yaml)
 
-
 ---
 
 #### 💡 What Frigate Vision Does
@@ -51,6 +50,9 @@ It’s working great in my setup, but I’m calling it a “beta” for now unti
 ---
 
 ### 🔭 Coming in v1.0:
+**📄 Get the BETA Blueprint:**
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fzacharyd3%2FFrigate-Vision%2Fblob%2Fmain%2Ffrigate_vision_beta.yaml)
 
 * 🧼 Cleaner debug logs & error handling 
 * 🍏 iOS support (notification actions + formatting tweaks)
