@@ -1,5 +1,5 @@
 blueprint:
-  name: Frigate AI Notifications with LLM Vision
+  name: FrigateVision
   description: >
     This blueprint sends notifications for Frigate events, with optional LLM
     clip analysis, Android/iOS support, and extended logic for loitering or sublabel
@@ -224,7 +224,18 @@ actions:
       label: "{{ object | title }}"
       raw_device: !input notify_device
       input_notify_device: >-
-        {{ 'notify.mobile_app_' ~ device_attr(raw_device, 'name') | lower | replace(' ', '_') | replace("'", '') }}
+      {{ 
+        'notify.mobile_app_' ~ (
+          device_attr(raw_device, 'name')
+          | lower
+          | replace(' ', '_')
+          | replace("'", '')
+          | replace("’", '')
+          | replace("`", '')
+          | replace('"', '')
+          | strip()
+        )
+      }}
       camera_name: >
         {% set name = camera | replace('_', ' ') | title %}
         {% if input_expand %}
@@ -379,36 +390,48 @@ actions:
     data: {}
     target:
       entity_id: !input helper
-  - alias: "LLM Vision: Analyze Frigate Clip"
-    action: llmvision.video_analyzer
-    data:
-      remember: true
-      model: "{{ input_model }}"
-      provider: "{{ input_provider }}"
-      frigate_retry_attempts: "{{ input_frigate_retry_attempts }}"
-      frigate_retry_seconds: "{{ input_frigate_retry_seconds }}"
-      max_frames: "{{ input_max_frames }}"
-      include_filename: "{{ input_include_filename }}"
-      target_width: "{{ input_target_width }}"
-      max_tokens: "{{ input_max_tokens }}"
-      temperature: "{{ input_temperature }}"
-      generate_title: "{{ input_generate_title }}"
-      expose_images: "{{ input_expose_images }}"
-      event_id: "{{ id }}"
-      message: >
-        {{ input_prompt }}
-        {% if input_sublabel and sub_label %}
-          These images have already been passed to DeepStack and Double Take and {{ sub_label | string }} has been identified, use this knowledge as well.
-        {% endif %}
-    response_variable: response
-    enabled: true
+  - variables:
+      calculated_timeout_seconds: >
+        {% set retry_time = input_frigate_retry_time %}
+        {% set time_in_seconds = (retry_time.hours | default(0)) * 3600 + (retry_time.minutes | default(0)) * 60 + (retry_time.seconds | default(0)) %}
+        {% set attempts = input_frigate_retry_attempts | int %}
+        {{ (time_in_seconds * attempts) + 60 }}
+  - alias: "LLM Vision: Analyze Frigate Clip (Safe)"
+    timeout:
+      seconds: "{{ calculated_timeout_seconds }}"
+    continue_on_timeout: true
+    sequence:
+      - service: llmvision.video_analyzer
+        response_variable: response
+        data:
+          remember: true
+          model: "{{ input_model }}"
+          provider: "{{ input_provider }}"
+          frigate_retry_attempts: "{{ input_frigate_retry_attempts }}"
+          frigate_retry_seconds: "{{ input_frigate_retry_seconds }}"
+          max_frames: "{{ input_max_frames }}"
+          include_filename: "{{ input_include_filename }}"
+          target_width: "{{ input_target_width }}"
+          max_tokens: "{{ input_max_tokens }}"
+          temperature: "{{ input_temperature }}"
+          generate_title: "{{ input_generate_title }}"
+          expose_images: "{{ input_expose_images }}"
+          event_id: "{{ id }}"
+          message: >
+            {{ input_prompt }}
+            {% if input_sublabel and sub_label %}
+              These images have already been passed to DeepStack and Double Take and {{ sub_label | string }} has been identified, use this knowledge as well.
+            {% endif %}
   - action: input_boolean.turn_off
-    metadata: {}
-    data: {}
     target:
       entity_id: !input helper
   - variables:
-      message: "{{response.response_text}}"
+      message: >
+        {% if response is defined and response.response_text is defined %}
+          {{ response.response_text }}
+        {% else %}
+          ⚠️ LLM analysis failed or timed out. No summary available.
+        {% endif %}
   - action: "{{input_notify_device}}"
     data:
       title: "{{title}}"
