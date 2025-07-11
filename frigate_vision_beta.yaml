@@ -384,29 +384,47 @@ actions:
         {% set time_in_seconds = (retry_time.hours | default(0)) * 3600 + (retry_time.minutes | default(0)) * 60 + (retry_time.seconds | default(0)) %}
         {% set attempts = input_frigate_retry_attempts | int %}
         {{ (time_in_seconds * attempts) + 60 }}
-  - alias: "LLM Vision: Analyze Frigate Clip"
-    action: llmvision.video_analyzer
-    data:
-      remember: true
-      model: "{{ input_model }}"
-      provider: "{{ input_provider }}"
-      frigate_retry_attempts: "{{ input_frigate_retry_attempts }}"
-      frigate_retry_seconds: "{{ input_frigate_retry_seconds }}"
-      max_frames: "{{ input_max_frames }}"
-      include_filename: "{{ input_include_filename }}"
-      target_width: "{{ input_target_width }}"
-      max_tokens: "{{ input_max_tokens }}"
-      temperature: "{{ input_temperature }}"
-      generate_title: "{{ input_generate_title }}"
-      expose_images: "{{ input_expose_images }}"
-      event_id: "{{ id }}"
-      message: >
-        {{ input_prompt }}
-        {% if input_sublabel and sub_label %}
-          These images have already been passed to DeepStack and Double Take and {{ sub_label | string }} has been identified, use this knowledge as well.
-        {% endif %}
-    response_variable: response
-    enabled: true
+  - repeat:
+    sequence:
+      - service: llmvision.video_analyzer
+        response_variable: response
+        data:
+          remember: true
+          model: "{{ input_model }}"
+          provider: "{{ input_provider }}"
+          frigate_retry_attempts: 1        # We do retries in this repeat, so single try per iteration
+          frigate_retry_seconds: "{{ input_frigate_retry_seconds }}"
+          max_frames: "{{ input_max_frames }}"
+          include_filename: "{{ input_include_filename }}"
+          target_width: "{{ input_target_width }}"
+          max_tokens: "{{ input_max_tokens }}"
+          temperature: "{{ input_temperature }}"
+          generate_title: "{{ input_generate_title }}"
+          expose_images: "{{ input_expose_images }}"
+          event_id: "{{ id }}"
+          message: >
+            {{ input_prompt }}
+            {% if input_sublabel and sub_label %}
+              These images have already been passed to DeepStack and Double Take and {{ sub_label | string }} has been identified, use this knowledge as well.
+            {% endif %}
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.llmvision_response
+        data:
+          value: >
+            {% if response is defined and response.response_text is defined %}
+              {{ response.response_text }}
+            {% else %}
+              ""
+            {% endif %}
+      - delay: "00:00:05"  # Optional: wait 5 seconds before checking
+      - condition: template
+        value_template: "{{ states('input_text.llmvision_response') not in ['', 'none', 'unknown'] }}"
+    until:
+      - condition: template
+        value_template: "{{ states('input_text.llmvision_response') not in ['', 'none', 'unknown'] }}"
+      - condition: template
+        value_template: "{{ repeat.index * (input_frigate_retry_time.total_seconds() | int) >= calculated_timeout_seconds }}"
   - action: input_boolean.turn_off
     target:
       entity_id: !input helper
@@ -437,5 +455,10 @@ actions:
           - action: URI
             title: Open Frigate
             uri: "{{base_url}}:8971/review"
+  - service: input_text.set_value
+  target:
+    entity_id: input_text.llmvision_response
+  data:
+    value: ""
   - delay: "{{ input_cooldown }}"
 mode: single
