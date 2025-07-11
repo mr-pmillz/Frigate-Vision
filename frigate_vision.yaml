@@ -223,7 +223,7 @@ actions:
       object: "{{ trigger.payload_json['after']['label'] }}"
       label: "{{ object | title }}"
       raw_device: !input notify_device
-      input_notify_device: "{{ 'notify.mobile_app_' ~ (device_attr(raw_device, 'name') | lower | replace(' ', '_') | replace(\"'\", '') | replace(\"’\", '') | replace('`', '') | replace('\"', '') | strip()) }}"
+      input_notify_device: "{{ 'notify.mobile_app_' ~ (device_attr(raw_device, 'name') | lower | replace(' ', '_') | replace(\"'\", '') | replace(\"’\", '') | replace('`', '') | replace('\"', '') | trim) }}"
       camera_name: >
         {% set name = camera | replace('_', ' ') | title %}
         {% if input_expand %}
