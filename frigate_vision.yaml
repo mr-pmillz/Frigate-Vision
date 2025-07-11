@@ -216,6 +216,7 @@ actions:
       input_sublabel: !input 'sublabel'
       input_cooldown: !input 'cooldown'
       input_helper: !input 'helper'
+      input_debug: !input 'debug'
       input_base_url: !input 'base_url'
       input_local_url: !input 'local_url'
       input_labels: !input 'labels'
@@ -295,31 +296,36 @@ actions:
                  A {{ label }} was detected on the {{ camera_name }}.
               {%endif%}
             message: ""
-        - data_template:
-            name: Frigate Notification
-            message: |
-              DEBUG (in loop): 
-                Info: 
-                  Last Zones: {{last_zones}}, 
-                  Current zones: {{entered_zones}}, 
-                  sublabel: {{sub_label}},
-                  IOS sound: {{update if not critical else 'yes due critical notifications'}}, 
-                  Android Sound: {{'disabled by alert once' if alert_once else 'enabled'}}, 
-                Triggers: 
-                  New Snapshot: {{new_snapshot}}, 
-                  Presence Changed: {{presence_changed}}, 
-                  stationary moved: {{stationary_moved}}, 
-                  entered zones changed: {{entered_zones_changed}}, 
-                  sublabel changed: {{sub_label_changed}}, 
-                Conditions: 
-                  Loitering: {{loitering}}
-                    or 
-                  Presence Entity not home: {{'ON' if presence_entity != '' else 'OFF'}} - {{'PASS' if not home else 'FAIL'}}, 
-                  zone filter TEST: {{'ON' if zone_only else 'OFF'}} - {{'PASS' if zone_filter else 'FAIL'}}, 
-                  multi-zone filter: {{'OFF' if not zone_only or not zone_multi else 'ON'}} - {{'PASS' if not zone_only or not zone_multi or ( entered_zones|length and zones and zones |reject('in', entered_zones) |list |length == 0 ) else 'FAIL'}}, 
-                  state filter TEST: {{'ON' if state_only else 'OFF'}} - {{'PASS' if state_true else 'FAIL'}}
-
-                  image: "/api/frigate{{client_id}}/notifications/{{id}}/{{attachment}}.jpg?format=android"
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ input_debug }}"
+        sequence:
+          - service: logbook.log
+            data_template:
+              name: Frigate Notification
+              message: |
+                DEBUG (in loop): 
+                  Info: 
+                    Last Zones: {{last_zones}}, 
+                    Current zones: {{entered_zones}}, 
+                    sublabel: {{sub_label}},
+                    IOS sound: {{update if not critical else 'yes due critical notifications'}}, 
+                    Android Sound: {{'disabled by alert once' if alert_once else 'enabled'}}, 
+                  Triggers: 
+                    New Snapshot: {{new_snapshot}}, 
+                    Presence Changed: {{presence_changed}}, 
+                    stationary moved: {{stationary_moved}}, 
+                    entered zones changed: {{entered_zones_changed}}, 
+                    sublabel changed: {{sub_label_changed}}, 
+                  Conditions: 
+                    Loitering: {{loitering}}
+                      or 
+                    Presence Entity not home: {{'ON' if presence_entity != '' else 'OFF'}} - {{'PASS' if not home else 'FAIL'}}, 
+                    zone filter TEST: {{'ON' if zone_only else 'OFF'}} - {{'PASS' if zone_filter else 'FAIL'}}, 
+                    multi-zone filter: {{'OFF' if not zone_only or not zone_multi else 'ON'}} - {{'PASS' if not zone_only or not zone_multi or ( entered_zones|length and zones and zones |reject('in', entered_zones) |list |length == 0 ) else 'FAIL'}}, 
+                    state filter TEST: {{'ON' if state_only else 'OFF'}} - {{'PASS' if state_true else 'FAIL'}}
+                    image: "/api/frigate{{client_id}}/notifications/{{id}}/{{attachment}}.jpg?format=android"
           action: logbook.log
         - alias: Notify on loitering or significant change
           choose:
