@@ -434,5 +434,5 @@ actions:
           - action: URI
             title: Open Frigate
             uri: "{{base_url}}:8971/review"
-  - delay: "{{ cooldown }}"
+  - delay: "{{ input_cooldown }}"
 mode: single
