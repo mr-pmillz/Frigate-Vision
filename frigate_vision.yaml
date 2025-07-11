@@ -282,23 +282,21 @@ actions:
               trigger: mqtt
           timeout: "{{ input_cooldown }}"
           continue_on_timeout: true
-
-      - variables:
-          event: "{{ wait.trigger.payload_json }}"
-          new_snapshot: "{{ update_thumbnail and event['before']['snapshot_time'] != event['after']['snapshot_time'] }}"
-          stationary_moved: "{{ event['after']['position_changes'] > event['before']['position_changes'] }}"
-          sub_label: "{{ event['after']['sub_label'] }}"
-          sub_label_changed: "{{ sub_label != event['before']['sub_label'] }}"
-          update: "{{ alert_once or (new_snapshot and not sub_label_changed) }}"
-          title: >
-            {% if sub_label %}
-              {{ sub_label[0] }} was detected on the {{ camera_name }}.
-            {% else %}
-              A {{ label }} was detected on the {{ camera_name }}.
-            {% endif %}
-          message: ""
-
-      - choose:
+        - variables:
+            event: "{{ wait.trigger.payload_json }}"
+            new_snapshot: "{{ update_thumbnail and event['before']['snapshot_time'] != event['after']['snapshot_time'] }}"
+            stationary_moved: "{{ event['after']['position_changes'] > event['before']['position_changes'] }}"
+            sub_label: "{{ event['after']['sub_label'] }}"
+            sub_label_changed: "{{ sub_label != event['before']['sub_label'] }}"
+            update: "{{ alert_once or (new_snapshot and not sub_label_changed) }}"
+            title: >
+              {% if sub_label %}
+                {{ sub_label[0] }} was detected on the {{ camera_name }}.
+              {% else %}
+                A {{ label }} was detected on the {{ camera_name }}.
+              {% endif %}
+            message: ""
+       - choose:
           - conditions:
               - condition: template
                 value_template: "{{ input_debug }}"
