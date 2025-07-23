@@ -1,464 +1,505 @@
 blueprint:
   name: FrigateVision - Beta
-  description: >
-    This blueprint sends notifications for Frigate events, with optional LLM
-    clip analysis, Android/iOS support, and extended logic for loitering or sublabel
-    changes. Supports notification cooldown, custom icons, click actions, and
-    dynamic message formatting.
+  description: 'This blueprint sends notifications for Frigate events, with optional
+    LLM clip analysis, Android/iOS support, and extended logic for loitering or sublabel
+    changes. Supports notification cooldown, custom icons, click actions, and dynamic
+    message formatting.
+
+    '
   domain: automation
   input:
-    dashboard:
-      name: Event Summary dashboard
-      description: Enter the URI for the dashboard to show when clicking the "View Summary" notification action
-      default:
-      selector:
-        text:
-    append:
-      name: Append Camera
-      description: Appends "Camera" to the camera name for notification purposes (i.e. Back Yard becomes Back Yard Camera)
-      default: false
-      selector:
-        boolean:
-    expand:
-      name: Expand Cam
-      description: Expands an already existing "Cam" in the camera name for notification purposes (i.e. Back Yard Cam becomes Back Yard Camera)
-      default: false
-      selector:
-        boolean:  
-    provider:
-      name: Provider
-      description: Provider to use for analysis. See docs for additional information.
-      selector:
-        config_entry:
-          integration: llmvision
-    frigate_retry_attempts:
-      name: Retry Attempts
-      description: How many retries if the frigate clip isn't ready yet.
-      selector:
-        number:
-          min: 1.0
-          max: 20
-          mode: slider
-          step: 1.0
-    frigate_retry_time: 
-      name: Retry Timing
-      description: How long should Home Assistant keep retrying the LLM request
-      selector:
-        duration:
-    max_frames: 
-      name: Total Frames
-      description: How many frames to analyze.
-      default: 3
-      selector:
-        number:
-          min: 1.0
-          max: 60.0
-          mode: slider
-          step: 1.0
-    include_filename:
-      name: Include filenames
-      description: Include filenames when sending Frigate clip
-      default: false
-      selector:
-        boolean:
-    generate_title:
-      name: Generate Event Title
-      description: Generate an event title when creating the event summary
-      default: true
-      selector:
-        boolean:
-    expose_images:
-      name: Explose Images
-      description: Save the key frame. This will save analyzed frames in /www/llmvision so they can be used for notifications. The file path will be included in the response.
-      default: true
-      selector:
-        boolean:
-    model:
-      name: Model
-      description: Which model to use. Depends on chosen provider.
-      default: gpt-4o-mini
-      selector:
-        text:
-          multiline: false
-          multiple: false
-    target_width:
-      name: Target Width
-      description: Downscale images (uses less tokens and speeds up processing)
-      default: 1920
-      selector:
-        number:
-          min: 480.0
-          max: 3840.0
-          mode: slider
-          step: 20
-    max_tokens:
-      name: Maximum Tokens
-      description: Maximum number of tokens to generate. Use this to control the length
-        of the summaries.
-      default: 20
-      selector:
-        number:
-          min: 1.0
-          max: 100.0
-          mode: slider
-          step: 1.0
-    temperature:
-      name: Temperature
-      description: Randomness. Lower is more accurate, higher is more creative.
-      default: 0.1
-      selector:
-        number:
-          min: 0.1
-          max: 1.0
-          step: 0.1
-          mode: slider      
-    prompt:
-      name: LLMVision Prompt
-      description: The default prompt is provided, but feel free to tweak it to your liking.
-      default: Summarize the observed events using clear, neutral third-person language. Use timestamps to ensure the summary follows the correct chronological order. Focus on moving subjects such as people, vehicles, animals, packages, equipment, or other active elements. Ignore static background objects unless directly interacted with. Include stationary vehicles only if they are clearly identifiable as delivery or emergency vehicles, mentioning any visible company names or uniform details. Describe activity relevant to the general monitored area without referencing camera angles, timestamps, or observers. Present the events as if witnessed in real time, avoiding frame-by-frame descriptions or introductory phrases. Summarize naturally in a single, cohesive narrative, keeping it concise and suitable for brief notifications. When context strongly suggests a likely outcome, describe it confidently. Do not mention the absence of activity or objects, nor conclude with statements about what was or wasn’t observed.
-      selector:
-        text:
-          multiline: true
-    sublabel:
-      name: Sublabels
-      description: Check for Sublabels in Frigate and supply to LLM if available
-      default: true
-      selector:
-        boolean:
-    cooldown:
-      name: Cooldown
-      description: Minimum time between notifications
-      selector:
-        duration:
-          enable_day: true
-    debug: 
-      name: Debugging
-      description: Enable or Disable debug logging
-      default: false
-      selector:
-        boolean:
-    camera:
-      name: Frigate Camera Entity
-      description: Frigate camera entity to watch
-      selector:
-        entity:
-          domain: camera
-    base_url:
-      name: External Base URL
-      description: Remote Domain/IP for your home network
-      default: https://your.ddns
-      selector:
-        text:
-    local_url:
-      name: Internal Base URL
-      description: Local IP for your Home Assistant server
-      default: http://192.168.250.1
-      selector:
-        text:
-    labels:
-      name: Labels to Notify On
-      description: List of Frigate object labels to notify on (leave empty for all)
-      default:
-        - person
-      selector:
-        select:
-          multiple: true
-          options:
-            - person
-            - dog
-            - cat
-            - car
-            - package
-            - bicycle
-            - face
-    helper:
-      name: Helper
-      description: Input Boolean Helper for multiple camera usage
-      selector:
-        entity:
-          domain: input_boolean
-    notify_device:
-      name: Mobile Device
-      description: Select a phone or tablet with the mobile app installed
-      selector:
-        device:
-          integration: mobile_app
+      camera:
+        name: Frigate Camera Entity
+        description: The Frigate camera entity to monitor for events.
+        selector:
+          entity:
+            domain: [camera]
+            multiple: false
+
+      labels:
+        name: Labels to Notify On
+        description: List of Frigate object labels to notify on. Leave empty to match all.
+        default: [person]
+        selector:
+          select:
+            multiple: true
+            options:
+              - person
+              - dog
+              - cat
+              - car
+              - package
+              - bicycle
+              - face
+            sort: false
+            custom_value: false
+
+      helper:
+        name: Helper
+        description: Input Boolean helper used for multi-camera logic.
+        selector:
+          entity:
+            domain: [input_boolean]
+            multiple: false
+
+      cooldown:
+        name: Cooldown
+        description: Minimum time between notifications.
+        selector:
+          duration:
+            enable_day: true
+
+      notify_device:
+        name: Mobile Device
+        description: Select the phone or tablet (with the Home Assistant app) to receive the notification.
+        selector:
+          device:
+            integration: mobile_app
+            multiple: true
+
+      ios_live_view:
+        name: iOS Notification
+        description: Enable if the target device runs iOS for enhanced notification support.
+        selector:
+          boolean: {}
+      append:
+        name: Append Camera
+        description: Add the word "Camera" to the end of the camera name (e.g., "Back Yard" becomes "Back Yard Camera").
+        default: false
+        selector:
+          boolean: {}
+
+      expand:
+        name: Expand Cam
+        description: Replace "Cam" with "Camera" in the camera name (e.g., "Back Yard Cam" becomes "Back Yard Camera").
+        default: false
+        selector:
+          boolean: {}
+
+      dashboard:
+        name: Event Summary Dashboard
+        description: URI to open when the "View Summary" action is clicked.
+        default:
+        selector:
+          text: {}
+
+      generate_title:
+        name: Generate Event Title
+        description: Enable to generate a dynamic title for each event summary.
+        default: true
+        selector:
+          boolean: {}
+
+      include_filename:
+        name: Include Filenames
+        description: Attach filenames when sending Frigate clips.
+        default: false
+        selector:
+          boolean: {}
+
+      expose_images:
+        name: Expose Images
+        description: Save analyzed frames to `/www/llmvision` for use in notifications. File paths will be included in the LLM response.
+        default: true
+        selector:
+          boolean: {}
+      provider:
+        name: Provider
+        description: Choose the LLMVision provider. See documentation for supported options.
+        selector:
+          config_entry:
+            integration: llmvision
+
+      model:
+        name: Model
+        description: Language model to use. Depends on the selected provider.
+        default: gemini-2.0-flash
+        selector:
+          text:
+            multiline: false
+            multiple: false
+
+      prompt:
+        name: LLMVision Prompt
+        description: Customize the prompt used to generate event summaries.
+        default: Summarize the observed events using clear, neutral third-person language. Use timestamps to ensure the summary follows the correct chronological order. Focus on moving subjects such as people, vehicles, animals, packages, equipment, or other active elements. Ignore static background objects unless directly interacted with. Include stationary vehicles only if they are clearly identifiable as delivery or emergency vehicles, mentioning any visible company names or uniform details. Describe activity relevant to the general monitored area without referencing camera angles, timestamps, or observers. Present the events as if witnessed in real time, avoiding frame-by-frame descriptions or introductory phrases. Summarize naturally in a single, cohesive narrative, keeping it concise and suitable for brief notifications. When context strongly suggests a likely outcome, describe it confidently. Do not mention the absence of activity or objects, nor conclude with statements about what was or wasn’t observed.
+        selector:
+          text:
+            multiline: true
+            multiple: false
+
+      max_tokens:
+        name: Maximum Tokens
+        description: Limit the number of tokens used in the summary (controls length).
+        default: 20
+        selector:
+          number:
+            min: 1.0
+            max: 100.0
+            mode: slider
+            step: 1.0
+
+      temperature:
+        name: Temperature
+        description: Adjusts response randomness. Lower values yield more accurate, consistent results; higher values are more creative.
+        default: 0.1
+        selector:
+          number:
+            min: 0.1
+            max: 1.0
+            step: 0.1
+            mode: slider
+
+      sublabel:
+        name: Sublabels
+        description: Include Frigate sublabels in the prompt if available.
+        default: true
+        selector:
+          boolean: {}
+      max_frames:
+        name: Total Frames
+        description: Number of frames to analyze from the event.
+        default: 3
+        selector:
+          number:
+            min: 1.0
+            max: 60.0
+            mode: slider
+            step: 1.0
+
+      frigate_retry_attempts:
+        name: Retry Attempts
+        description: Number of retry attempts if the Frigate clip isn’t ready.
+        selector:
+          number:
+            min: 1.0
+            max: 20.0
+            mode: slider
+            step: 1.0
+
+      frigate_retry_time:
+        name: Retry Timing
+        description: How long to keep retrying the LLM request if the clip isn't ready.
+        selector:
+          duration: {}
+      target_width:
+        name: Target Width
+        description: Downscale frame width to reduce token usage and speed up processing.
+        default: 1920
+        selector:
+          number:
+            min: 480.0
+            max: 3840.0
+            mode: slider
+            step: 20.0
+
+      base_url:
+        name: External Base URL
+        description: Public domain or IP of your Home Assistant server for accessing media externally.
+        default: https://your.ddns
+        selector:
+          text: {}
+
+      local_url:
+        name: Internal Base URL
+        description: Local IP address of your Home Assistant instance.
+        default: http://192.168.250.1
+        selector:
+          text: {}
+      debug:
+        name: Debugging
+        description: Enable debug logging for this automation.
+        default: false
+        selector:
+          boolean: {}
+
+  source_url: https://github.com/zacharyd3/Frigate-Vision/blob/main/frigate_vision.yaml
 trigger_variables:
-  input_camera: !input 'camera'
-  camera: '{{ input_camera | replace(''camera.'', '''') }}' 
+  input_camera: !input camera
+  camera: '{{ input_camera | replace(''camera.'', '''') }}'
 trigger:
-  - topic: frigate/events
-    payload: "{{ camera }}/new"
-    value_template: "{{ value_json['after']['camera'] | lower | replace('-','_') }}/{{value_json['type']}}"
-    id: frigate-event
-    trigger: mqtt
+- topic: frigate/events
+  payload: '{{ camera }}/new'
+  value_template: '{{ value_json[''after''][''camera''] | lower | replace(''-'',''_'')
+    }}/{{value_json[''type'']}}'
+  id: frigate-event
+  trigger: mqtt
 condition:
 actions:
-  - variables:
-      input_append: !input append
-      input_dashboard: !input dashboard
-      input_expand: !input expand
-      input_provider: !input provider
-      input_frigate_retry_attempts: !input frigate_retry_attempts
-      input_frigate_retry_time: !input frigate_retry_time
-      input_frigate_retry_seconds: >
-        {% set d = input_frigate_retry_time %}
-        {{ (d.hours | default(0)) * 3600 + (d.minutes | default(0)) * 60 + (d.seconds | default(0)) }}
-      input_max_frames: !input max_frames
-      input_include_filename: !input include_filename
-      input_generate_title: !input generate_title
-      input_expose_images: !input expose_images
-      input_model: !input model
-      input_target_width: !input target_width
-      input_max_tokens: !input max_tokens
-      input_temperature: !input temperature
-      input_prompt: !input 'prompt'
-      input_sublabel: !input 'sublabel'
-      input_cooldown: !input 'cooldown'
-      input_helper: !input 'helper'
-      input_base_url: !input 'base_url'
-      input_local_url: !input 'local_url'
-      input_labels: !input 'labels'
-      labels: "{{ input_labels | list | lower }}"
-      object: "{{ trigger.payload_json['after']['label'] }}"
-      label: "{{ object | title }}"
-      raw_device: !input notify_device
-      input_notify_device: "{{ 'notify.mobile_app_' ~ (device_attr(raw_device, 'name') | lower | replace(' ', '_') | replace(\"'\", '') | replace(\"’\", '') | replace('`', '') | replace('\"', '') | trim) }}"
-      camera_name: >
-        {% set name = camera | replace('_', ' ') | title %}
-        {% if input_expand %}
-          {% set name = name | regex_replace('(?i)\\bcam\\b', 'Camera') %}
-        {% endif %}
-        {{ name ~ (' Camera' if input_append else '') }}
-      cooldown: "{{ '%02d:%02d:%02d' | format(input_cooldown.hours + (input_cooldown.days * 24), input_cooldown.minutes, input_cooldown.seconds) }}"
-      base_url: "{{ input_base_url.rstrip('/')}}"
-      local_url: "{{ input_local_url.rstrip('/')}}"
-      title: ""
-      message: "A {{ label }} was detected on the {{ camera_name }}."
-      fps: '{{ states(''sensor.'' + camera + ''_camera_fps'')|int(5) }}'
-      id: "{{ trigger.payload_json['after']['id'] }}"
-      initial_entered_zones: "{{ trigger.payload_json['after']['entered_zones'] |lower}}"
-      icon: >-
-        mdi:{{'account-outline' if label == 'Person' else 'dog' if label == 'Dog' else 'cat' if label == 'Cat' else 'car' if label == 'Car' else 'home-assistant'}}
-      clip_url: "{{base_url}}/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-      snapshot_url: "{{base_url}}/api/frigate/notifications/{{id}}/snapshot.jpg"
-      update_thumbnail: true
-      alert_once: true
-  - condition: template
-    value_template: >
-     {{ not labels|length or object in labels }}
-  - action: "{{input_notify_device}}"
-    data:
-      title: "{{title}}"
-      message: "{{message}}"
-      data:
-        tag: "{{ id }}"
-        group: "{{ camera }}"
-        notification_icon: "{{icon}}"
-        attachment:
-          url: /api/frigate/notifications/{{id}}/thumbnail.jpg
-        image: /api/frigate/notifications/{{id}}/thumbnail.jpg?format=android
-        clickAction: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-        push:
-          interruption-level: active
-        alert_once: "{{alert_once}}"
-        actions:
-          - action: URI
-            title: View Clip
-            uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-          - action: URI
-            title: View Summary
-            uri: "{{ input_dashboard }}"
-          - action: URI
-            title: Open Frigate
-            uri: "{{base_url}}:8971/review"
-  - repeat:
-      sequence:
-        - wait_for_trigger:
-            - topic: frigate/events
-              payload: "{{ id }}"
-              value_template: "{{ value_json['after']['id'] }}"
-              trigger: mqtt
-          timeout: "{{ input_cooldown }}"
-          continue_on_timeout: true
-        - variables:
-            event: "{{ wait.trigger.payload_json }}"
-            new_snapshot: "{{ update_thumbnail and event['before']['snapshot_time'] != event['after']['snapshot_time'] }}"
-            stationary_moved: "{{ event['after']['position_changes'] > event['before']['position_changes'] }}"
-            sub_label: "{{ event['after']['sub_label']}}"
-            sub_label_changed: "{{ sub_label != event['before']['sub_label'] }}"
-            update: "{{ alert_once or (new_snapshot and not sub_label_changed) }}"
-            title: |
-              {% if sub_label %} 
-                {{sub_label[0]}} was detected on the {{camera_name}}.
-              {%else%}
-                 A {{ label }} was detected on the {{ camera_name }}.
-              {%endif%}
-            message: ""
-        - data_template:
-            name: Frigate Notification
-            message: |
-              DEBUG (in loop): 
-                Info: 
-                  Last Zones: {{last_zones}}, 
-                  Current zones: {{entered_zones}}, 
-                  sublabel: {{sub_label}},
-                  IOS sound: {{update if not critical else 'yes due critical notifications'}}, 
-                  Android Sound: {{'disabled by alert once' if alert_once else 'enabled'}}, 
-                Triggers: 
-                  New Snapshot: {{new_snapshot}}, 
-                  Presence Changed: {{presence_changed}}, 
-                  stationary moved: {{stationary_moved}}, 
-                  entered zones changed: {{entered_zones_changed}}, 
-                  sublabel changed: {{sub_label_changed}}, 
-                Conditions: 
-                  Loitering: {{loitering}}
-                    or 
-                  Presence Entity not home: {{'ON' if presence_entity != '' else 'OFF'}} - {{'PASS' if not home else 'FAIL'}}, 
-                  zone filter TEST: {{'ON' if zone_only else 'OFF'}} - {{'PASS' if zone_filter else 'FAIL'}}, 
-                  multi-zone filter: {{'OFF' if not zone_only or not zone_multi else 'ON'}} - {{'PASS' if not zone_only or not zone_multi or ( entered_zones|length and zones and zones |reject('in', entered_zones) |list |length == 0 ) else 'FAIL'}}, 
-                  state filter TEST: {{'ON' if state_only else 'OFF'}} - {{'PASS' if state_true else 'FAIL'}}
+- variables:
+    input_append: !input append
+    input_dashboard: !input dashboard
+    input_expand: !input expand
+    input_provider: !input provider
+    input_frigate_retry_attempts: !input frigate_retry_attempts
+    input_frigate_retry_time: !input frigate_retry_time
+    input_frigate_retry_seconds: '{% set d = input_frigate_retry_time %} {{ (d.hours
+      | default(0)) * 3600 + (d.minutes | default(0)) * 60 + (d.seconds | default(0))
+      }}
 
-                  image: "/api/frigate{{client_id}}/notifications/{{id}}/{{attachment}}.jpg?format=android"
-          action: logbook.log
-        - alias: Notify on loitering or significant change
-          choose:
-            - conditions:
-                - condition: template
-                  value_template: "{{new_snapshot or sub_label_changed}}"
-              sequence:
-                - action: "{{input_notify_device}}"
-                  data:
-                    title: "{{title}}"
-                    message: "{{message}}"
-                    data:
-                      tag: "{{ id }}"
-                      group: "{{ camera }}"
-                      notification_icon: "{{icon}}"
-                      attachment:
-                        url: /api/frigate/notifications/{{id}}/thumbnail.jpg
-                      image: /api/frigate/notifications/{{id}}/thumbnail.jpg?format=android
-                      clickAction: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-                      push:
-                        interruption-level: active
-                      alert_once: "{{alert_once}}"
-                      actions:
-                        - action: URI
-                          title: View Clip
-                          uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-                        - action: URI
-                          title: View Summary
-                          uri: "{{ input_dashboard }}"
-                        - action: URI
-                          title: Open Frigate
-                          uri: "{{base_url}}:8971/review"
-      until:
-        - condition: template
-          value_template: "{{ not wait.trigger or wait.trigger.payload_json['type'] == 'end' }}"
-  - delay: 00:00:30
-  - alias: If LLM Vision is Running
-    if:
-      - condition: state
-        entity_id: !input helper
-        state: "on"
-    then:
-      - wait_for_trigger:
-          - trigger: state
-            entity_id: !input helper
-            from: "on"
-            to: "off"
-        timeout:
-          hours: 0
-          minutes: 3
-          seconds: 0
-          milliseconds: 0
-        continue_on_timeout: false
-  - action: input_boolean.turn_on
-    metadata: {}
-    data: {}
-    target:
-      entity_id: !input helper
-  - variables:
-      calculated_timeout_seconds: >
-        {% set retry_time = input_frigate_retry_time %}
-        {% set time_in_seconds = (retry_time.hours | default(0)) * 3600 + (retry_time.minutes | default(0)) * 60 + (retry_time.seconds | default(0)) %}
-        {% set attempts = input_frigate_retry_attempts | int %}
-        {{ (time_in_seconds * attempts) + 60 }}
-  - repeat:
+      '
+    input_max_frames: !input max_frames
+    input_ios_live_view: !input ios_live_view
+    input_include_filename: !input include_filename
+    input_generate_title: !input generate_title
+    input_expose_images: !input expose_images
+    input_model: !input model
+    input_target_width: !input target_width
+    input_max_tokens: !input max_tokens
+    input_temperature: !input temperature
+    input_prompt: !input prompt
+    input_sublabel: !input sublabel
+    input_cooldown: !input cooldown
+    input_helper: !input helper
+    input_debug: !input debug
+    input_base_url: !input base_url
+    input_local_url: !input local_url
+    input_labels: !input labels
+    labels: '{{ input_labels | list | lower }}'
+    object: '{{ trigger.payload_json[''after''][''label''] }}'
+    label: '{{ object | title }}'
+    raw_device: !input notify_device
+    camera_name: "{% set name = camera | replace('_', ' ') | title %} {% if input_expand
+      %}\n  {% set name = name | regex_replace('(?i)\\\\bcam\\\\b', 'Camera') %}\n{%
+      endif %} {{ name ~ (' Camera' if input_append else '') }}\n"
+    cooldown: '{{ ''%02d:%02d:%02d'' | format(input_cooldown.hours + (input_cooldown.days
+      * 24), input_cooldown.minutes, input_cooldown.seconds) }}'
+    base_url: '{{ input_base_url.rstrip(''/'')}}'
+    local_url: '{{ input_local_url.rstrip(''/'')}}'
+    title: ''
+    message: A {{ label }} was detected on the {{ camera_name }}.
+    fps: '{{ states(''sensor.'' + camera + ''_camera_fps'')|int(5) }}'
+    id: '{{ trigger.payload_json[''after''][''id''] }}'
+    initial_entered_zones: '{{ trigger.payload_json[''after''][''entered_zones'']
+      |lower}}'
+    icon: mdi:{{'account-outline' if label == 'Person' else 'dog' if label == 'Dog'
+      else 'cat' if label == 'Cat' else 'car' if label == 'Car' else 'home-assistant'}}
+    clip_url: '{{base_url}}/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4'
+    snapshot_url: '{{base_url}}/api/frigate/notifications/{{id}}/snapshot.jpg'
+    update_thumbnail: true
+    alert_once: true
+- condition: template
+  value_template: '{{ not labels|length or object in labels }}
+
+    '
+- repeat:
+    for_each: '{{ raw_device }}'
     sequence:
-      - service: llmvision.video_analyzer
-        response_variable: response
+      - variables:
+          input_notify_device: '{{ ''notify.mobile_app_'' ~ (device_attr(repeat.item, ''name'')
+            | lower | replace('' '', ''_'') | replace("''", '''') | replace("’", '''') |
+            replace(''`'', '''') | replace(''"'', '''') | trim) }}'
+      - service: '{{ input_notify_device }}'
         data:
-          remember: true
-          model: "{{ input_model }}"
-          provider: "{{ input_provider }}"
-          frigate_retry_attempts: 1        # We do retries in this repeat, so single try per iteration
-          frigate_retry_seconds: "{{ input_frigate_retry_seconds }}"
-          max_frames: "{{ input_max_frames }}"
-          include_filename: "{{ input_include_filename }}"
-          target_width: "{{ input_target_width }}"
-          max_tokens: "{{ input_max_tokens }}"
-          temperature: "{{ input_temperature }}"
-          generate_title: "{{ input_generate_title }}"
-          expose_images: "{{ input_expose_images }}"
-          event_id: "{{ id }}"
-          message: >
-            {{ input_prompt }}
-            {% if input_sublabel and sub_label %}
-              These images have already been passed to DeepStack and Double Take and {{ sub_label | string }} has been identified, use this knowledge as well.
-            {% endif %}
-      - service: input_text.set_value
-        target:
-          entity_id: input_text.llmvision_response
-        data:
-          value: >
-            {% if response is defined and response.response_text is defined %}
-              {{ response.response_text }}
-            {% else %}
-              ""
-            {% endif %}
-      - delay: "00:00:05"  # Optional: wait 5 seconds before checking
-      - condition: template
-        value_template: "{{ states('input_text.llmvision_response') not in ['', 'none', 'unknown'] }}"
+          title: '{{ title }}'
+          message: '{{ message }}'
+          data:
+            tag: '{{ id }}'
+            group: '{{ camera }}'
+            notification_icon: '{{ icon }}'
+            attachment:
+              url: /api/frigate/notifications/{{ id }}/thumbnail.jpg
+            image: /api/frigate/notifications/{{ id }}/thumbnail.jpg?format=android
+            clickAction: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+            push:
+              interruption-level: active
+            alert_once: '{{ alert_once }}'
+            actions:
+              - action: URI
+                title: View Clip
+                uri: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+              - action: URI
+                title: View Summary
+                uri: '{{ input_dashboard }}'
+              - action: URI
+                title: Open Frigate
+                uri: '{{ base_url }}:8971/review'
+- repeat:
+    sequence:
+    - wait_for_trigger:
+      - topic: frigate/events
+        payload: '{{ id }}'
+        value_template: '{{ value_json[''after''][''id''] }}'
+        trigger: mqtt
+      timeout: '{{ input_cooldown }}'
+      continue_on_timeout: true
+    - variables:
+        event: '{{ wait.trigger.payload_json }}'
+        new_snapshot: '{{ update_thumbnail and event[''before''][''snapshot_time'']
+          != event[''after''][''snapshot_time''] }}'
+        stationary_moved: '{{ event[''after''][''position_changes''] > event[''before''][''position_changes'']
+          }}'
+        sub_label: '{{ event[''after''][''sub_label'']}}'
+        sub_label_changed: '{{ sub_label != event[''before''][''sub_label''] }}'
+        update: '{{ alert_once or (new_snapshot and not sub_label_changed) }}'
+        title: "{% if sub_label %} \n  {{sub_label[0]}} was detected on the {{camera_name}}.\n{%else%}\n
+          \  A {{ label }} was detected on the {{ camera_name }}.\n{%endif%}\n"
+        message: ''
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ input_debug }}"
+          sequence:
+            - service: logbook.log
+              data_template:
+                name: Frigate Notification
+                message: >
+                  DEBUG (in loop): 
+                    Info: 
+                      Last Zones: {{last_zones}}, 
+                      Current zones: {{entered_zones}}, 
+                      sublabel: {{sub_label}},
+                      IOS sound: {{update if not critical else 'yes due critical notifications'}},
+                      Android Sound: {{'disabled by alert once' if alert_once else 'enabled'}},
+                    Triggers: 
+                      New Snapshot: {{new_snapshot}}, 
+                      Presence Changed: {{presence_changed}}, 
+                      stationary moved: {{stationary_moved}}, 
+                      entered zones changed: {{entered_zones_changed}}, 
+                      sublabel changed: {{sub_label_changed}},
+                    Conditions: 
+                      Loitering: {{loitering}}
+                        or 
+                      Presence Entity not home: {{'ON' if presence_entity != '' else 'OFF'}} - {{'PASS' if not home else 'FAIL'}}, 
+                      zone filter TEST: {{'ON' if zone_only else 'OFF'}} - {{'PASS' if zone_filter else 'FAIL'}}, 
+                      multi-zone filter: {{'OFF' if not zone_only or not zone_multi else 'ON'}} - {{'PASS' if not zone_only or not zone_multi or ( entered_zones|length and zones and zones |reject('in', entered_zones) |list |length == 0 ) else 'FAIL'}}, 
+                      state filter TEST: {{'ON' if state_only else 'OFF'}} - {{'PASS' if state_true else 'FAIL'}}
+
+                    image: "/api/frigate{{client_id}}/notifications/{{id}}/{{attachment}}.jpg?format=android"
+    - alias: Notify on loitering or significant change
+      choose:
+      - conditions:
+        - condition: template
+          value_template: '{{new_snapshot or sub_label_changed}}'
+        sequence:
+        - repeat:
+            for_each: '{{ raw_device }}'
+            sequence:
+              - variables:
+                  input_notify_device: '{{ ''notify.mobile_app_'' ~ (device_attr(repeat.item, ''name'')
+                    | lower | replace('' '', ''_'') | replace("''", '''') | replace("’", '''') |
+                    replace(''`'', '''') | replace(''"'', '''') | trim) }}'
+              - service: '{{ input_notify_device }}'
+                data:
+                  title: '{{ title }}'
+                  message: '{{ message }}'
+                  data:
+                    tag: '{{ id }}'
+                    group: '{{ camera }}'
+                    notification_icon: '{{ icon }}'
+                    attachment:
+                      url: /api/frigate/notifications/{{ id }}/thumbnail.jpg
+                    image: /api/frigate/notifications/{{ id }}/thumbnail.jpg?format=android
+                    clickAction: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+                    push:
+                      interruption-level: active
+                    alert_once: '{{ alert_once }}'
+                    actions:
+                      - action: URI
+                        title: View Clip
+                        uri: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+                      - action: URI
+                        title: View Summary
+                        uri: '{{ input_dashboard }}'
+                      - action: URI
+                        title: Open Frigate
+                        uri: '{{ base_url }}:8971/review'
     until:
-      - condition: template
-        value_template: "{{ states('input_text.llmvision_response') not in ['', 'none', 'unknown'] }}"
-      - condition: template
-        value_template: "{{ repeat.index * (input_frigate_retry_time.total_seconds() | int) >= calculated_timeout_seconds }}"
-  - action: input_boolean.turn_off
-    target:
+    - condition: template
+      value_template: '{{ not wait.trigger or wait.trigger.payload_json[''type'']
+        == ''end'' }}'
+- delay: 00:00:30
+- alias: If LLM Vision is Running
+  if:
+  - condition: state
+    entity_id: !input helper
+    state: 'on'
+  then:
+  - wait_for_trigger:
+    - platform: state
       entity_id: !input helper
-  - variables:
-      message: "{{ response.response_text }}"
-  - action: "{{input_notify_device}}"
-    data:
-      title: "{{title}}"
-      message: "{{message}}"
-      data:
-        tag: "{{ id }}"
-        group: "{{ camera }}"
-        notification_icon: "{{icon}}"
-        attachment:
-          url: /api/frigate/notifications/{{id}}/thumbnail.jpg
-        image: /api/frigate/notifications/{{id}}/thumbnail.jpg?format=android
-        clickAction: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-        push:
-          interruption-level: active
-        alert_once: "{{alert_once}}"
-        actions:
-          - action: URI
-            title: View Clip
-            uri: "{{base_url}}:8123/api/frigate/notifications/{{id}}/{{camera}}/clip.mp4"
-          - action: URI
-            title: View Summary
-            uri: "{{ input_dashboard }}"
-          - action: URI
-            title: Open Frigate
-            uri: "{{base_url}}:8971/review"
-  - service: input_text.set_value
-    target:
-      entity_id: input_text.llmvision_response
-    data:
-      value: ""
-  - delay: "{{ input_cooldown }}"
+      from: 'on'
+      to: 'off'
+    timeout:
+      hours: 0
+      minutes: 3
+      seconds: 0
+      milliseconds: 0
+    continue_on_timeout: false
+- action: input_boolean.turn_on
+  metadata: {}
+  data: {}
+  target:
+    entity_id: !input helper
+- variables:
+    calculated_timeout_seconds: '{% set retry_time = input_frigate_retry_time %} {%
+      set time_in_seconds = (retry_time.hours | default(0)) * 3600 + (retry_time.minutes
+      | default(0)) * 60 + (retry_time.seconds | default(0)) %} {% set attempts =
+      input_frigate_retry_attempts | int %} {{ (time_in_seconds * attempts) + 60 }}
+
+      '
+- alias: 'LLM Vision: Analyze Frigate Clip'
+  action: llmvision.video_analyzer
+  data:
+    remember: true
+    model: '{{ input_model }}'
+    provider: '{{ input_provider }}'
+    frigate_retry_attempts: '{{ input_frigate_retry_attempts }}'
+    frigate_retry_seconds: '{{ input_frigate_retry_seconds }}'
+    max_frames: '{{ input_max_frames }}'
+    include_filename: '{{ input_include_filename }}'
+    target_width: '{{ input_target_width }}'
+    max_tokens: '{{ input_max_tokens }}'
+    temperature: '{{ input_temperature }}'
+    generate_title: '{{ input_generate_title }}'
+    expose_images: '{{ input_expose_images }}'
+    event_id: '{{ id }}'
+    message: "{{ input_prompt }} {% if input_sublabel and sub_label %}\n  These images
+      have already been passed to DeepStack and Double Take and {{ sub_label | string
+      }} has been identified, use this knowledge as well.\n{% endif %}\n"
+  response_variable: response
+  enabled: true
+- action: input_boolean.turn_off
+  target:
+    entity_id: !input helper
+- variables:
+    message: '{{ response.response_text }}'
+- repeat:
+    for_each: '{{ raw_device }}'
+    sequence:
+      - variables:
+          input_notify_device: '{{ ''notify.mobile_app_'' ~ (device_attr(repeat.item, ''name'')
+            | lower | replace('' '', ''_'') | replace("''", '''') | replace("’", '''') |
+            replace(''`'', '''') | replace(''"'', '''') | trim) }}'
+      - service: '{{ input_notify_device }}'
+        data:
+          title: '{{ title }}'
+          message: '{{ message }}'
+          data:
+            tag: '{{ id }}'
+            group: '{{ camera }}'
+            notification_icon: '{{ icon }}'
+            attachment:
+              url: >
+                {% if input_ios_live_view %}
+                  {{ base_url }}/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4?sign=true
+                {% else %}
+                  /api/frigate/notifications/{{ id }}/thumbnail.jpg
+                {% endif %}
+            image: /api/frigate/notifications/{{ id }}/thumbnail.jpg?format=android
+            clickAction: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+            push:
+              interruption-level: active
+            alert_once: '{{ alert_once }}'
+            actions:
+              - action: URI
+                title: View Clip
+                uri: '{{ base_url }}:8123/api/frigate/notifications/{{ id }}/{{ camera }}/clip.mp4'
+              - action: URI
+                title: View Summary
+                uri: '{{ input_dashboard }}'
+              - action: URI
+                title: Open Frigate
+                uri: '{{ base_url }}:8971/review'
+- delay: '{{ input_cooldown }}'
 mode: single
