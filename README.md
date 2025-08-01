@@ -21,7 +21,8 @@ Introducing **Frigate Vision**; a blueprint designed to bring intelligent notifi
 * **🕒 Enforces per-camera cooldowns** so you’re not spammed when a squirrel does laps in your yard
 * **📱 Pushes mobile notifications** with custom text, camera names, and optional sublabels (e.g., who or what was recognized)
 * **🧩 Uses input helpers** so you can easily reuse this blueprint across cameras without editing YAML
-* **🎛️ Debug mode** lets you preview all variables and logic without sending notifications
+* **🎛️ Multiple notification devices** now available
+* **🐛 Debug mode** lets you preview all variables and logic without sending notifications
 
 ---
 
@@ -39,24 +40,7 @@ I’ve since spent time crafting what I felt was the ultimate smart notification
 * [LLMVision](https://llmvision.org/) installed and configured
 * Home Assistant mobile app (for push notifications)
 * An input_boolean helper for multi-camera queuing
-* A dashboard to use as a landing page (used for LLMVision event summary widget)
-
----
-
-### 🚧 Current Version: **v0.9**
-
-It’s working great in my setup, but I’m calling it a “beta” for now until I squash a few quirks and gather feedback.
-
----
-
-### 🔭 Coming in v1.0:
-**📄 Get the BETA Blueprint:**
-
-[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fzacharyd3%2FFrigate-Vision%2Fblob%2Fmain%2Ffrigate_vision_beta.yaml)
-
-* 🧼 Cleaner debug logs
-* 🍏 iOS support (notification clips + formatting tweaks)
-* 🎛️ Multiple notification devices now available
+* A dashboard to use as a landing page ( LLMVision event summary suggested )
 
 ---
 
