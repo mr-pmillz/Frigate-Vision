@@ -1,5 +1,5 @@
 blueprint:
-  name: FrigateVision - Beta
+  name: FrigateVision
   description: 'This blueprint sends notifications for Frigate events, with optional
     LLM clip analysis, Android/iOS support, and extended logic for loitering or sublabel
     changes. Supports notification cooldown, custom icons, click actions, and dynamic
