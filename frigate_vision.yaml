@@ -56,174 +56,196 @@ blueprint:
           device:
             integration: mobile_app
             multiple: true
+      notification_customization:
+        name: Notifcation Customization
+        icon: mdi:message-alert
+        description: Configure optional nofitication features
+        collapsed: true
+        input:        
+          ios_live_view:
+            name: iOS Notification
+            description: Enable if the target device runs iOS for enhanced notification support.
+            default: false
+            selector:
+              boolean: {}
+              
+          append:
+            name: Append Camera
+            description: Add the word "Camera" to the end of the camera name (e.g., "Back Yard" becomes "Back Yard Camera").
+            default: false
+            selector:
+              boolean: {}
+    
+          expand:
+            name: Expand Cam
+            description: Replace "Cam" with "Camera" in the camera name (e.g., "Back Yard Cam" becomes "Back Yard Camera").
+            default: false
+            selector:
+              boolean: {}
+    
+          dashboard:
+            name: Event Summary Dashboard
+            description: URI to open when the "View Summary" action is clicked.
+            default:
+            selector:
+              text: {}
+              
+      llmvision_tweaks:
+        name: LLMVision Tweaks
+        icon: mdi:brain
+        description: Tweak LLMVision settings and options
+        collapsed: true
+        input:        
+          generate_title:
+            name: Generate Event Title
+            description: Enable to generate a dynamic title for each event summary.
+            default: true
+            selector:
+              boolean: {}
 
-      ios_live_view:
-        name: iOS Notification
-        description: Enable if the target device runs iOS for enhanced notification support.
-        default: false
-        selector:
-          boolean: {}
-      append:
-        name: Append Camera
-        description: Add the word "Camera" to the end of the camera name (e.g., "Back Yard" becomes "Back Yard Camera").
-        default: false
-        selector:
-          boolean: {}
+          include_filename:
+            name: Include Filenames
+            description: Attach filenames when sending Frigate clips.
+            default: false
+            selector:
+              boolean: {}
 
-      expand:
-        name: Expand Cam
-        description: Replace "Cam" with "Camera" in the camera name (e.g., "Back Yard Cam" becomes "Back Yard Camera").
-        default: false
-        selector:
-          boolean: {}
+          expose_images:
+            name: Expose Images
+            description: Save analyzed frames to `/www/llmvision` for use in notifications. File paths will be included in the LLM response.
+            default: true
+            selector:
+              boolean: {}
+              
+          provider:
+            name: Provider
+            description: Choose the LLMVision provider. See documentation for supported options.
+            selector:
+              config_entry:
+                integration: llmvision
 
-      dashboard:
-        name: Event Summary Dashboard
-        description: URI to open when the "View Summary" action is clicked.
-        default:
-        selector:
-          text: {}
+          model:
+            name: Model
+            description: Language model to use. Depends on the selected provider.
+            default: gemini-2.0-flash
+            selector:
+              text:
+                multiline: false
+                multiple: false
 
-      generate_title:
-        name: Generate Event Title
-        description: Enable to generate a dynamic title for each event summary.
-        default: true
-        selector:
-          boolean: {}
+          prompt:
+            name: LLMVision Prompt
+            description: Customize the prompt used to generate event summaries.
+            default: Summarize the observed events using clear, neutral third-person language. Use timestamps to ensure the summary follows the correct chronological order. Focus on moving subjects such as people, vehicles, animals, packages, equipment, or other active elements. Ignore static background objects unless directly interacted with. Include stationary vehicles only if they are clearly identifiable as delivery or emergency vehicles, mentioning any visible company names or uniform details. Describe activity relevant to the general monitored area without referencing camera angles, timestamps, or observers. Present the events as if witnessed in real time, avoiding frame-by-frame descriptions or introductory phrases. Summarize naturally in a single, cohesive narrative, keeping it concise and suitable for brief notifications. When context strongly suggests a likely outcome, describe it confidently. Do not mention the absence of activity or objects, nor conclude with statements about what was or wasn’t observed.
+            selector:
+              text:
+                multiline: true
+                multiple: false
 
-      include_filename:
-        name: Include Filenames
-        description: Attach filenames when sending Frigate clips.
-        default: false
-        selector:
-          boolean: {}
+          max_tokens:
+            name: Maximum Tokens
+            description: Limit the number of tokens used in the summary (controls length).
+            default: 20
+            selector:
+              number:
+                min: 1.0
+                max: 100.0
+                mode: slider
+                step: 1.0
 
-      expose_images:
-        name: Expose Images
-        description: Save analyzed frames to `/www/llmvision` for use in notifications. File paths will be included in the LLM response.
-        default: true
-        selector:
-          boolean: {}
-      provider:
-        name: Provider
-        description: Choose the LLMVision provider. See documentation for supported options.
-        selector:
-          config_entry:
-            integration: llmvision
+          temperature:
+            name: Temperature
+            description: Adjusts response randomness. Lower values yield more accurate, consistent results; higher values are more creative.
+            default: 0.1
+            selector:
+              number:
+                min: 0.1
+                max: 1.0
+                step: 0.1
+                mode: slider
+              
+          max_frames:
+            name: Total Frames
+            description: Number of frames to analyze from the event.
+            default: 3
+            selector:
+              number:
+                min: 1.0
+                max: 60.0
+                mode: slider
+                step: 1.0
 
-      model:
-        name: Model
-        description: Language model to use. Depends on the selected provider.
-        default: gemini-2.0-flash
-        selector:
-          text:
-            multiline: false
-            multiple: false
+          frigate_retry_attempts:
+            name: Retry Attempts
+            description: Number of retry attempts if the Frigate clip isn’t ready.
+            selector:
+              number:
+                min: 1.0
+                max: 20.0
+                mode: slider
+                step: 1.0
 
-      prompt:
-        name: LLMVision Prompt
-        description: Customize the prompt used to generate event summaries.
-        default: Summarize the observed events using clear, neutral third-person language. Use timestamps to ensure the summary follows the correct chronological order. Focus on moving subjects such as people, vehicles, animals, packages, equipment, or other active elements. Ignore static background objects unless directly interacted with. Include stationary vehicles only if they are clearly identifiable as delivery or emergency vehicles, mentioning any visible company names or uniform details. Describe activity relevant to the general monitored area without referencing camera angles, timestamps, or observers. Present the events as if witnessed in real time, avoiding frame-by-frame descriptions or introductory phrases. Summarize naturally in a single, cohesive narrative, keeping it concise and suitable for brief notifications. When context strongly suggests a likely outcome, describe it confidently. Do not mention the absence of activity or objects, nor conclude with statements about what was or wasn’t observed.
-        selector:
-          text:
-            multiline: true
-            multiple: false
+          frigate_retry_time:
+            name: Retry Timing
+            description: How long to keep retrying the LLM request if the clip isn't ready.
+            selector:
+              duration: {}
+              
+          target_width:
+            name: Target Width
+            description: Downscale frame width to reduce token usage and speed up processing.
+            default: 1920
+            selector:
+              number:
+                min: 480.0
+                max: 3840.0
+                mode: slider
+                step: 20.0
+              
+      advanced_options:
+        name: Advanced Options
+        icon: mdi:cog
+        description: Customize Frigate, HomeAssistant, and other details
+        collapsed: true
+        input:
+          sublabel:
+            name: Sublabels
+            description: Include Frigate sublabels in the prompt if available.
+            default: true
+            selector:
+              boolean: {}          
 
-      max_tokens:
-        name: Maximum Tokens
-        description: Limit the number of tokens used in the summary (controls length).
-        default: 20
-        selector:
-          number:
-            min: 1.0
-            max: 100.0
-            mode: slider
-            step: 1.0
+          base_url:
+            name: External Base URL
+            description: Public domain or IP of your Home Assistant server for accessing media externally.
+            default: https://your.ddns
+            selector:
+              text: {}
 
-      temperature:
-        name: Temperature
-        description: Adjusts response randomness. Lower values yield more accurate, consistent results; higher values are more creative.
-        default: 0.1
-        selector:
-          number:
-            min: 0.1
-            max: 1.0
-            step: 0.1
-            mode: slider
-
-      sublabel:
-        name: Sublabels
-        description: Include Frigate sublabels in the prompt if available.
-        default: true
-        selector:
-          boolean: {}
-      max_frames:
-        name: Total Frames
-        description: Number of frames to analyze from the event.
-        default: 3
-        selector:
-          number:
-            min: 1.0
-            max: 60.0
-            mode: slider
-            step: 1.0
-
-      frigate_retry_attempts:
-        name: Retry Attempts
-        description: Number of retry attempts if the Frigate clip isn’t ready.
-        selector:
-          number:
-            min: 1.0
-            max: 20.0
-            mode: slider
-            step: 1.0
-
-      frigate_retry_time:
-        name: Retry Timing
-        description: How long to keep retrying the LLM request if the clip isn't ready.
-        selector:
-          duration: {}
-      target_width:
-        name: Target Width
-        description: Downscale frame width to reduce token usage and speed up processing.
-        default: 1920
-        selector:
-          number:
-            min: 480.0
-            max: 3840.0
-            mode: slider
-            step: 20.0
-
-      base_url:
-        name: External Base URL
-        description: Public domain or IP of your Home Assistant server for accessing media externally.
-        default: https://your.ddns
-        selector:
-          text: {}
-
-      local_url:
-        name: Internal Base URL
-        description: Local IP address of your Home Assistant instance.
-        default: http://192.168.250.1
-        selector:
-          text: {}
-      debug:
-        name: Debugging
-        description: Enable debug logging for this automation.
-        default: false
-        selector:
-          boolean: {}
-      notification_timeout:
-        name: Notification Timeout (minutes)
-        description: Time before Android automatically clears the notification
-        default: 10
-        selector:
-          number:
-            min: 1.0
-            max: 120.0
-            step: 1.0
-            unit_of_measurement: minutes
-            mode: slider
+          local_url:
+            name: Internal Base URL
+            description: Local IP address of your Home Assistant instance.
+            default: http://192.168.250.1
+            selector:
+              text: {}
+          debug:
+            name: Debugging
+            description: Enable debug logging for this automation.
+            default: false
+            selector:
+              boolean: {}
+              
+          notification_timeout:
+            name: Notification Timeout (minutes)
+            description: Time before Android automatically clears the notification
+            default: 10
+            selector:
+              number:
+                min: 1.0
+                max: 120.0
+                step: 1.0
+                unit_of_measurement: minutes
+                mode: slider
 
   source_url: https://github.com/zacharyd3/Frigate-Vision/blob/main/frigate_vision.yaml
 trigger_variables:
@@ -307,10 +329,10 @@ actions:
           title: '{{ title }}'
           message: '{{ message }}'
           data:
-            channel: '{{ camera }}_notifications'
+            channel: '{{ camera_name }} Notifications'
             timeout: '{{ input_notification_timeout * 60 | int }}'
             tag: '{{ id }}'
-            group: '{{ camera }}'
+            group: '{{ camera_name }}'
             notification_icon: '{{ icon }}'
             data:
               ttl: 0
@@ -350,8 +372,8 @@ actions:
         sub_label: '{{ event[''after''][''sub_label'']}}'
         sub_label_changed: '{{ sub_label != event[''before''][''sub_label''] }}'
         update: '{{ alert_once or (new_snapshot and not sub_label_changed) }}'
-        title: "{% if sub_label %} \n  {{sub_label[0]}} was detected on the {{camera_name}}.\n{%endif%}\n"
-        message: "{% if sub_label %}\n''{%endif%}\n"
+        title: "{% if sub_label %}\n  {{ sub_label | join(', ') }} was detected on the {{ camera_name }}.\n{% endif %}"
+        message: "{% if sub_label %}\n{%else%} A {{ label }} was detected on the {{ camera_name }}.{%endif%}"
     - choose:
         - conditions:
             - condition: template
@@ -401,10 +423,10 @@ actions:
                   title: '{{ title }}'
                   message: '{{ message }}'
                   data:
-                    channel: '{{ camera }}_notifications'
+                    channel: '{{ camera_name }} Notifications'
                     timeout: '{{ input_notification_timeout * 60 | int }}'
                     tag: '{{ id }}'
-                    group: '{{ camera }}'
+                    group: '{{ camera_name }}'
                     data:
                       ttl: 0
                       priority: high
@@ -501,7 +523,7 @@ actions:
             channel: '{{ camera }}_notifications'
             timeout: '{{ input_notification_timeout * 60 | int }}'
             tag: '{{ id }}'
-            group: '{{ camera }}'
+            group: '{{ camera_name }}'
             notification_icon: '{{ icon }}'
             data:
               ttl: 0
