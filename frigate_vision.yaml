@@ -60,6 +60,7 @@ blueprint:
       ios_live_view:
         name: iOS Notification
         description: Enable if the target device runs iOS for enhanced notification support.
+        default: false
         selector:
           boolean: {}
       append:
@@ -212,6 +213,17 @@ blueprint:
         default: false
         selector:
           boolean: {}
+      notification_timeout:
+        name: Notification Timeout (minutes)
+        description: Time before Android automatically clears the notification
+        default: 10
+        selector:
+          number:
+            min: 1.0
+            max: 120.0
+            step: 1.0
+            unit_of_measurement: minutes
+            mode: slider
 
   source_url: https://github.com/zacharyd3/Frigate-Vision/blob/main/frigate_vision.yaml
 trigger_variables:
@@ -239,6 +251,7 @@ actions:
 
       '
     input_max_frames: !input max_frames
+    input_notification_timeout: !input notification_timeout
     input_ios_live_view: !input ios_live_view
     input_include_filename: !input include_filename
     input_generate_title: !input generate_title
@@ -294,9 +307,14 @@ actions:
           title: '{{ title }}'
           message: '{{ message }}'
           data:
+            channel: '{{ camera }}_notifications'
+            timeout: '{{ input_notification_timeout * 60 | int }}'
             tag: '{{ id }}'
             group: '{{ camera }}'
             notification_icon: '{{ icon }}'
+            data:
+              ttl: 0
+              priority: high
             attachment:
               url: /api/frigate/notifications/{{ id }}/thumbnail.jpg
             image: /api/frigate/notifications/{{ id }}/thumbnail.jpg?format=android
@@ -332,9 +350,8 @@ actions:
         sub_label: '{{ event[''after''][''sub_label'']}}'
         sub_label_changed: '{{ sub_label != event[''before''][''sub_label''] }}'
         update: '{{ alert_once or (new_snapshot and not sub_label_changed) }}'
-        title: "{% if sub_label %} \n  {{sub_label[0]}} was detected on the {{camera_name}}.\n{%else%}\n
-          \  A {{ label }} was detected on the {{ camera_name }}.\n{%endif%}\n"
-        message: ''
+        title: "{% if sub_label %} \n  {{sub_label[0]}} was detected on the {{camera_name}}.\n{%endif%}\n"
+        message: "{% if sub_label %}\n''{%endif%}\n"
     - choose:
         - conditions:
             - condition: template
@@ -384,8 +401,13 @@ actions:
                   title: '{{ title }}'
                   message: '{{ message }}'
                   data:
+                    channel: '{{ camera }}_notifications'
+                    timeout: '{{ input_notification_timeout * 60 | int }}'
                     tag: '{{ id }}'
                     group: '{{ camera }}'
+                    data:
+                      ttl: 0
+                      priority: high
                     notification_icon: '{{ icon }}'
                     attachment:
                       url: /api/frigate/notifications/{{ id }}/thumbnail.jpg
@@ -476,9 +498,14 @@ actions:
           title: '{{ title }}'
           message: '{{ message }}'
           data:
+            channel: '{{ camera }}_notifications'
+            timeout: '{{ input_notification_timeout * 60 | int }}'
             tag: '{{ id }}'
             group: '{{ camera }}'
             notification_icon: '{{ icon }}'
+            data:
+              ttl: 0
+              priority: high
             attachment:
               url: >
                 {% if input_ios_live_view %}
